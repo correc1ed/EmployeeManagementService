@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.dockerignore
+**/.git/
+**/.vs/
+**/node_modules/
+*.db
+*.log

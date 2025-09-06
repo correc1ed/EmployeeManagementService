@@ -1,0 +1,36 @@
+﻿services:
+  employee-api:
+    build:
+      context: ..  # Контекст на уровень выше, где находится Dockerfile
+      dockerfile: Dockerfile
+    container_name: employee-management-api
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=employee-db;Port=5432;Database=employeeManagementServiceDb;Username=postgres;Password=1
+    ports:
+      - "5000:80"
+    depends_on:
+      employee-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  employee-db:
+    image: postgres:latest
+    container_name: employee-management-db
+    environment:
+      - POSTGRES_DB=employeeManagementServiceDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1
+    ports:
+      - "8585:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./Docker/Db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d employeeManagementServiceDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
