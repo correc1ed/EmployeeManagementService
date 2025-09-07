@@ -1,4 +1,4 @@
-﻿namespace EmployeeManagementService.Domain.Entities;
+﻿namespace EmployeeManagementService.Domain.Data.Abstractions.Entities;
 
 /// <summary>
 /// Сотрудник

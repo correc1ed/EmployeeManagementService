@@ -1,59 +1,44 @@
-﻿using EmployeeManagementService.Application.Features.Common;
-using EmployeeManagementService.Application.Features.Employees.DTO;
+﻿using EmployeeManagementService.Application.Features.Employees.DTO;
+using EmployeeManagementService.Application.Features.Employees.Interfaces;
 using EmployeeManagementService.Application.Features.Employees.Requests;
 using EmployeeManagementService.Application.Features.Employees.Responses;
-using EmployeeManagementService.Application.Interfaces.Employees;
-using EmployeeManagementService.Domain.Entities;
-using EmployeeManagementService.Domain.Interfaces.Repositories.Employees;
+using EmployeeManagementService.Domain.Data.Abstractions.Entities;
+using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
 using Microsoft.Extensions.Logging;
 
 namespace EmployeeManagementService.Infrastructure.Services.Employees;
 
 public class EmployeeService : IEmployeeService
 {
-	private readonly IEmployeeWritableRepository _employeeWritableRepository;
-	private readonly IEmployeeReadableRepository _employeeReadableRepository;
-	private readonly IEmployeeDeletableRepository _employeeDeletableRepository;
-
+	private readonly IEmployeeRepository _employeeRepository;
 	private readonly ILogger<EmployeeService> _logger;
 
-	public EmployeeService(IEmployeeWritableRepository employeeWritableRepository, IEmployeeReadableRepository employeeReadableRepository, IEmployeeDeletableRepository employeeDeletableRepository,
+	public EmployeeService(
+		IEmployeeRepository employeeRepository,
 		ILogger<EmployeeService> logger)
 	{
-		_employeeReadableRepository = employeeReadableRepository;
-		_employeeWritableRepository = employeeWritableRepository;
-		_employeeDeletableRepository = employeeDeletableRepository;
-
+		_employeeRepository = employeeRepository;
 		_logger = logger;
 	}
 
-	public async Task<ExecutionResult<GetEmployeesResponse>> GetEmployeesByCompanyIdAsync(int companyId)
+	public async Task<GetEmployeesResponse> GetEmployeesByCompanyIdAsync(int companyId)
 	{
 		try
 		{
 			if (companyId <= 0)
 			{
-				_logger.LogError("Invalid company id");
-
-				return new ExecutionResult<GetEmployeesResponse>()
-				{
-
-					IsSuccess = false,
-					ErrorMessage = "Invalid company id"
-				};
+				var errorMessage = "Invalid company id";
+				_logger.LogError(errorMessage);
+				throw new ArgumentException(errorMessage, nameof(companyId));
 			}
 
-			var employees = await _employeeReadableRepository.GetByCompanyIdAsync(companyId);
+			var employees = await _employeeRepository.GetByCompanyIdAsync(companyId);
 
 			if (employees == null || !employees.Any())
 			{
-				_logger.LogError("No employees found for the specified company");
-
-				return new ExecutionResult<GetEmployeesResponse>()
-				{
-					IsSuccess = true,
-					ErrorMessage = "No employees found for the specified company"
-				};
+				var errorMessage = "No employees found for the specified company";
+				_logger.LogWarning(errorMessage);
+				return new GetEmployeesResponse { Employees = new List<EmployeeDTO>() };
 			}
 
 			var result = employees.Select(_ => new EmployeeDTO()
@@ -67,51 +52,36 @@ public class EmployeeService : IEmployeeService
 				Department = _.Department
 			}).ToList();
 
-			return new ExecutionResult<GetEmployeesResponse>()
+			return new GetEmployeesResponse()
 			{
-				IsSuccess = true,
-				Data = new GetEmployeesResponse()
-				{
-					Employees = result
-				}
+				Employees = result
 			};
 		}
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error retrieving employees for company {CompanyId}", companyId);
-
-			return new ExecutionResult<GetEmployeesResponse>()
-			{
-				IsSuccess = false,
-				ErrorMessage = ex.Message
-			};
+			throw;
 		}
 	}
 
-	public async Task<ExecutionResult<GetEmployeesResponse>> GetEmployeesByDepartmentIdAsync(int departmentId)
+	public async Task<GetEmployeesResponse> GetEmployeesByDepartmentIdAsync(int departmentId)
 	{
 		try
 		{
 			if (departmentId <= 0)
 			{
-				_logger.LogError("Invalid department id");
-
-				return new ExecutionResult<GetEmployeesResponse>()
-				{
-					IsSuccess = false,
-					ErrorMessage = "Invalid department id"
-				};
+				var errorMessage = "Invalid department id";
+				_logger.LogError(errorMessage);
+				throw new ArgumentException(errorMessage, nameof(departmentId));
 			}
 
-			var employees = await _employeeReadableRepository.GetByDepartmentIdAsync(departmentId);
+			var employees = await _employeeRepository.GetByDepartmentIdAsync(departmentId);
 
 			if (employees == null || !employees.Any())
 			{
-				return new ExecutionResult<GetEmployeesResponse>()
-				{
-					IsSuccess = true,
-					ErrorMessage = "No employees found for the specified department"
-				};
+				var errorMessage = "No employees found for the specified department";
+				_logger.LogWarning(errorMessage);
+				return new GetEmployeesResponse { Employees = new List<EmployeeDTO>() };
 			}
 
 			var result = employees.Select(_ => new EmployeeDTO()
@@ -125,188 +95,167 @@ public class EmployeeService : IEmployeeService
 				Department = _.Department
 			}).ToList();
 
-			return new ExecutionResult<GetEmployeesResponse>()
+			return new GetEmployeesResponse()
 			{
-				IsSuccess = true,
-				Data = new GetEmployeesResponse()
-				{
-					Employees = result
-				}
+				Employees = result
 			};
 		}
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error retrieving employees for department {DepartmentId}", departmentId);
-
-			return new ExecutionResult<GetEmployeesResponse>()
-			{
-				IsSuccess = false,
-				ErrorMessage = ex.Message
-			};
+			throw;
 		}
 	}
 
-	public async Task<ExecutionResult<PostEmplpoyeeResponse>> PostEmployeeAsync(PostEmplpoyeeRequest postEmplpoyeeRequest)
+	public async Task<CreateEmplpoyeeResponse> CreateEmployeeAsync(CreateEmplpoyeeRequest createEmplpoyeeRequest)
 	{
 		try
 		{
+			if (createEmplpoyeeRequest == null)
+			{
+				var errorMessage = "Request cannot be null";
+				_logger.LogError(errorMessage);
+				throw new ArgumentNullException(nameof(createEmplpoyeeRequest), errorMessage);
+			}
+
 			var passport = new Passport()
 			{
-				Type = postEmplpoyeeRequest.Passport.Type,
-				Number = postEmplpoyeeRequest.Passport.Number
+				Type = createEmplpoyeeRequest.Passport.Type,
+				Number = createEmplpoyeeRequest.Passport.Number
 			};
 
 			var department = new Department()
 			{
-				Name = postEmplpoyeeRequest.Department.Name,
-				Phone = postEmplpoyeeRequest.Department.Phone
+				Name = createEmplpoyeeRequest.Department.Name,
+				Phone = createEmplpoyeeRequest.Department.Phone
 			};
 
 			var employee = new Employee()
 			{
-				Name = postEmplpoyeeRequest.Name,
-				Surname = postEmplpoyeeRequest.Surname,
-				Phone = postEmplpoyeeRequest.Phone,
-				CompanyId = postEmplpoyeeRequest.CompanyId,
-				PassportId = passport.Id,
-				Passport = passport,
-				DepartmentId = department.Id,
-				Department = department
+				Name = createEmplpoyeeRequest.Name,
+				Surname = createEmplpoyeeRequest.Surname,
+				Phone = createEmplpoyeeRequest.Phone,
+				CompanyId = createEmplpoyeeRequest.CompanyId
 			};
 
-			var result = await _employeeWritableRepository.CreateAsync(employee, passport, department);
+			var result = await _employeeRepository.CreateAsync(employee, passport, department);
 
-			return new ExecutionResult<PostEmplpoyeeResponse>()
+			return new CreateEmplpoyeeResponse()
 			{
-				IsSuccess = true,
-				Data = new PostEmplpoyeeResponse()
-				{
-					Id = result
-				}
+				Id = result
 			};
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex.Message);
-
-			return new ExecutionResult<PostEmplpoyeeResponse>()
-			{
-				IsSuccess = false,
-				ErrorMessage = ex.Message
-			};
+			_logger.LogError(ex, "Error creating employee");
+			throw;
 		}
 	}
 
-	public async Task<ExecutionResult> UpdateEmployeeAsync(int id, PutEmplpoyeeRequest putEmplpoyeeRequest)
+	public async Task UpdateEmployeeAsync(int id, UpdateEmplpoyeeRequest updateEmplpoyeeRequest)
 	{
 		try
 		{
-			var employee = await _employeeReadableRepository.GetByIdAsync(id);
+			if (id <= 0)
+			{
+				var errorMessage = "Invalid employee id";
+				_logger.LogError(errorMessage);
+				throw new ArgumentException(errorMessage, nameof(id));
+			}
+
+			if (updateEmplpoyeeRequest == null)
+			{
+				var errorMessage = "Request cannot be null";
+				_logger.LogError(errorMessage);
+				throw new ArgumentNullException(nameof(updateEmplpoyeeRequest), errorMessage);
+			}
+
+			var employee = await _employeeRepository.GetByIdAsync(id);
 
 			if (employee == null)
 			{
-				_logger.LogError("Employee is not found");
-
-				return new ExecutionResult()
-				{
-					IsSuccess = false,
-					ErrorMessage = "Employee is not found"
-				};
+				var errorMessage = $"Employee with id {id} not found";
+				_logger.LogError(errorMessage);
+				throw new KeyNotFoundException(errorMessage);
 			}
 
 			var passport = employee.Passport;
-
 			var department = employee.Department;
 
-			if (putEmplpoyeeRequest.Name != null)
+			if (updateEmplpoyeeRequest.Name != null)
 			{
-				employee.Name = putEmplpoyeeRequest.Name;
+				employee.Name = updateEmplpoyeeRequest.Name;
 			}
-			if (putEmplpoyeeRequest.Surname != null)
+			if (updateEmplpoyeeRequest.Surname != null)
 			{
-				employee.Surname = putEmplpoyeeRequest.Surname;
+				employee.Surname = updateEmplpoyeeRequest.Surname;
 			}
-			if (putEmplpoyeeRequest.Phone != null)
+			if (updateEmplpoyeeRequest.Phone != null)
 			{
-				employee.Phone = putEmplpoyeeRequest.Phone;
+				employee.Phone = updateEmplpoyeeRequest.Phone;
 			}
-			if (putEmplpoyeeRequest.CompanyId != null)
+			if (updateEmplpoyeeRequest.CompanyId != null)
 			{
-				employee.CompanyId = putEmplpoyeeRequest.CompanyId.Value;
+				employee.CompanyId = updateEmplpoyeeRequest.CompanyId.Value;
 			}
-			if (putEmplpoyeeRequest.Passport != null)
+			if (updateEmplpoyeeRequest.Passport != null)
 			{
-				if (putEmplpoyeeRequest.Passport.Type != null)
+				if (updateEmplpoyeeRequest.Passport.Type != null)
 				{
-					passport.Type = putEmplpoyeeRequest.Passport.Type;
+					passport.Type = updateEmplpoyeeRequest.Passport.Type;
 				}
-				if (putEmplpoyeeRequest.Passport.Number != null)
+				if (updateEmplpoyeeRequest.Passport.Number != null)
 				{
-					passport.Number = putEmplpoyeeRequest.Passport.Number;
+					passport.Number = updateEmplpoyeeRequest.Passport.Number;
 				}
 			}
-			if (putEmplpoyeeRequest.Department != null)
+			if (updateEmplpoyeeRequest.Department != null)
 			{
-				if (putEmplpoyeeRequest.Department.Name != null)
+				if (updateEmplpoyeeRequest.Department.Name != null)
 				{
-					department.Name = putEmplpoyeeRequest.Department.Name;
+					department.Name = updateEmplpoyeeRequest.Department.Name;
 				}
-				if (putEmplpoyeeRequest.Department.Phone != null)
+				if (updateEmplpoyeeRequest.Department.Phone != null)
 				{
-					department.Phone = putEmplpoyeeRequest.Department.Phone;
+					department.Phone = updateEmplpoyeeRequest.Department.Phone;
 				}
 			}
 
-			await _employeeWritableRepository.UpdateAsync(id, employee, passport, department);
-
-			return new ExecutionResult()
-			{
-				IsSuccess = true
-			};
+			await _employeeRepository.UpdateAsync(id, employee, passport, department);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex.Message);
-
-			return new ExecutionResult()
-			{
-				IsSuccess = false,
-				ErrorMessage = ex.Message
-			};
+			_logger.LogError(ex, "Error updating employee {EmployeeId}", id);
+			throw;
 		}
 	}
 
-	public async Task<ExecutionResult> DeleteEmplpoyeeByIdAsync(int id)
+	public async Task DeleteEmplpoyeeByIdAsync(int id)
 	{
 		try
 		{
-			if (id == null)
+			if (id <= 0)
 			{
-				_logger.LogError("Id is null");
-
-				return new ExecutionResult()
-				{
-					IsSuccess = false,
-					ErrorMessage = "Id is null"
-				};
+				var errorMessage = "Invalid employee id";
+				_logger.LogError(errorMessage);
+				throw new ArgumentException(errorMessage, nameof(id));
 			}
 
-			await _employeeDeletableRepository.DeleteByIdAsync(id);
+			var employee = await _employeeRepository.GetByIdAsync(id);
 
-			return new ExecutionResult()
+			if (employee == null)
 			{
-				IsSuccess = true
-			};
+				var errorMessage = $"Employee with id {id} not found";
+				_logger.LogError(errorMessage);
+				throw new KeyNotFoundException(errorMessage);
+			}
+
+			await _employeeRepository.DeleteByIdAsync(id);
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex.Message);
-
-			return new ExecutionResult()
-			{
-				IsSuccess = false,
-				ErrorMessage = ex.Message
-			};
+			_logger.LogError(ex, "Error deleting employee {EmployeeId}", id);
+			throw;
 		}
 	}
 }

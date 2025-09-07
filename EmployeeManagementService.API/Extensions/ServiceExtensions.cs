@@ -1,5 +1,5 @@
-﻿using EmployeeManagementService.Application.Interfaces.Employees;
-using EmployeeManagementService.Domain.Interfaces.Repositories.Employees;
+﻿using EmployeeManagementService.Application.Features.Employees.Interfaces;
+using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Persistence.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Services.Employees;
 
@@ -20,9 +20,7 @@ public static class ServiceExtensions
 	{
 		services.AddScoped<IEmployeeService, EmployeeService>();
 
-		services.AddScoped<IEmployeeWritableRepository, EmployeeWritableRepository>();
-		services.AddScoped<IEmployeeReadableRepository, EmployeeReadableRepository>();
-		services.AddScoped<IEmployeeDeletableRepository, EmployeeDeletableRepository>();
+		services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 		return services;
 	}

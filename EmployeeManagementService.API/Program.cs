@@ -1,6 +1,6 @@
 using EmployeeManagementService.API.Extensions;
 
-namespace EmployeeManagementService
+namespace EmployeeManagementService.API
 {
 	public class Program
 	{

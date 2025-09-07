@@ -1,33 +1,29 @@
 ﻿using EmployeeManagementService.Application.Features.Employees.DTO;
 using EmployeeManagementService.Application.Features.Employees.Requests;
-using EmployeeManagementService.Domain.Entities;
-using EmployeeManagementService.Domain.Interfaces.Repositories.Employees;
+using EmployeeManagementService.Application.Features.Employees.Responses;
+using EmployeeManagementService.Domain.Data.Abstractions.Entities;
+using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Services.Employees;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
-namespace EmployeeManagementService.Infrastructure.Tests.Services.Employees;
+namespace EmployeeManagementService.Infrastructure.Tests;
 
 public class EmployeeServiceTests
 {
-	private readonly Mock<IEmployeeWritableRepository> _writableRepositoryMock;
-	private readonly Mock<IEmployeeReadableRepository> _readableRepositoryMock;
-	private readonly Mock<IEmployeeDeletableRepository> _deletableRepositoryMock;
+	private readonly Mock<IEmployeeRepository> _employeeRepositoryMock;
+	private readonly Mock<ILogger<EmployeeService>> _loggerMock;
 	private readonly EmployeeService _employeeService;
 
 	public EmployeeServiceTests()
 	{
-		_writableRepositoryMock = new Mock<IEmployeeWritableRepository>();
-		_readableRepositoryMock = new Mock<IEmployeeReadableRepository>();
-		_deletableRepositoryMock = new Mock<IEmployeeDeletableRepository>();
+		_employeeRepositoryMock = new Mock<IEmployeeRepository>();
+		_loggerMock = new Mock<ILogger<EmployeeService>>();
 
 		_employeeService = new EmployeeService(
-			_writableRepositoryMock.Object,
-			_readableRepositoryMock.Object,
-			_deletableRepositoryMock.Object,
-			Mock.Of<ILogger<EmployeeService>>()
+			_employeeRepositoryMock.Object,
+			_loggerMock.Object
 		);
 	}
 
@@ -57,12 +53,12 @@ public class EmployeeServiceTests
 	}
 
 	[Fact]
-	public async Task GetEmployeeByCompanyIdAsync_ShouldReturnEmployees_WhenEmployeesExist()
+	public async Task GetEmployeesByCompanyIdAsync_ShouldReturnEmployees_WhenEmployeesExist()
 	{
 		// Arrange
 		var companyId = 1;
 		var testEmployees = CreateTestEmployees(2);
-		_readableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.GetByCompanyIdAsync(companyId))
 			.ReturnsAsync(testEmployees);
 
@@ -70,20 +66,18 @@ public class EmployeeServiceTests
 		var result = await _employeeService.GetEmployeesByCompanyIdAsync(companyId);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		result.Data.Employees.Should().HaveCount(2);
-
-		result.Data.Employees.First().Name.Should().Be("Test");
-
-		_readableRepositoryMock.Verify(repo => repo.GetByCompanyIdAsync(companyId), Times.Once);
+		result.Should().NotBeNull();
+		result.Employees.Should().HaveCount(2);
+		result.Employees.First().Name.Should().Be("Test");
+		_employeeRepositoryMock.Verify(repo => repo.GetByCompanyIdAsync(companyId), Times.Once);
 	}
 
 	[Fact]
-	public async Task GetEmployeeByCompanyIdAsync_ShouldReturnEmptyList_WhenNoEmployeesExist()
+	public async Task GetEmployeesByCompanyIdAsync_ShouldReturnEmptyList_WhenNoEmployeesExist()
 	{
 		// Arrange
 		var companyId = 1;
-		_readableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.GetByCompanyIdAsync(companyId))
 			.ReturnsAsync(new List<Employee>());
 
@@ -91,88 +85,88 @@ public class EmployeeServiceTests
 		var result = await _employeeService.GetEmployeesByCompanyIdAsync(companyId);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		result.ErrorMessage.Should().Be("No employees found for the specified company");
+		result.Should().NotBeNull();
+		result.Employees.Should().BeEmpty();
 	}
 
 	[Fact]
-	public async Task GetEmployeeByCompanyIdAsync_ShouldReturnError_WhenExceptionOccurs()
+	public async Task GetEmployeesByCompanyIdAsync_ShouldThrowArgumentException_WhenInvalidCompanyId()
+	{
+		// Arrange
+		var invalidCompanyId = 0;
+
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentException>(() =>
+			_employeeService.GetEmployeesByCompanyIdAsync(invalidCompanyId));
+	}
+
+	[Fact]
+	public async Task GetEmployeesByCompanyIdAsync_ShouldThrowException_WhenRepositoryThrowsException()
 	{
 		// Arrange
 		var companyId = 1;
-		_readableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.GetByCompanyIdAsync(companyId))
 			.ThrowsAsync(new Exception("Database error"));
 
-		// Act
-		var result = await _employeeService.GetEmployeesByCompanyIdAsync(companyId);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Database error");
+		// Act & Assert
+		await Assert.ThrowsAsync<Exception>(() =>
+			_employeeService.GetEmployeesByCompanyIdAsync(companyId));
 	}
 
 	[Fact]
-	public async Task GetEmployeeByDepartmentIdAsync_ShouldReturnEmployees_WhenEmployeesExist()
+	public async Task GetEmployeesByDepartmentIdAsync_ShouldReturnEmployees_WhenEmployeesExist()
 	{
 		// Arrange
-		var companyId = 1;
+		var departmentId = 1;
 		var testEmployees = CreateTestEmployees(2);
-		_readableRepositoryMock
-			.Setup(repo => repo.GetByDepartmentIdAsync(companyId))
+		_employeeRepositoryMock
+			.Setup(repo => repo.GetByDepartmentIdAsync(departmentId))
 			.ReturnsAsync(testEmployees);
 
 		// Act
-		var result = await _employeeService.GetEmployeesByDepartmentIdAsync(companyId);
+		var result = await _employeeService.GetEmployeesByDepartmentIdAsync(departmentId);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		result.Data.Employees.Should().HaveCount(2);
-
-		result.Data.Employees.First().Name.Should().Be("Test");
-
-		_readableRepositoryMock.Verify(repo => repo.GetByDepartmentIdAsync(companyId), Times.Once);
+		result.Should().NotBeNull();
+		result.Employees.Should().HaveCount(2);
+		result.Employees.First().Name.Should().Be("Test");
+		_employeeRepositoryMock.Verify(repo => repo.GetByDepartmentIdAsync(departmentId), Times.Once);
 	}
 
 	[Fact]
-	public async Task GetEmployeeByDepartmentIdAsync_ShouldReturnEmptyList_WhenNoEmployeesExist()
+	public async Task GetEmployeesByDepartmentIdAsync_ShouldReturnEmptyList_WhenNoEmployeesExist()
 	{
 		// Arrange
-		var companyId = 1;
-		_readableRepositoryMock
-			.Setup(repo => repo.GetByDepartmentIdAsync(companyId))
+		var departmentId = 1;
+		_employeeRepositoryMock
+			.Setup(repo => repo.GetByDepartmentIdAsync(departmentId))
 			.ReturnsAsync(new List<Employee>());
 
 		// Act
-		var result = await _employeeService.GetEmployeesByDepartmentIdAsync(companyId);
+		var result = await _employeeService.GetEmployeesByDepartmentIdAsync(departmentId);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		result.ErrorMessage.Should().Be("No employees found for the specified department");
+		result.Should().NotBeNull();
+		result.Employees.Should().BeEmpty();
 	}
 
 	[Fact]
-	public async Task GetEmployeeByDepartmentIdAsync_ShouldReturnError_WhenExceptionOccurs()
+	public async Task GetEmployeesByDepartmentIdAsync_ShouldThrowArgumentException_WhenInvalidDepartmentId()
 	{
 		// Arrange
-		var companyId = 1;
-		_readableRepositoryMock
-			.Setup(repo => repo.GetByDepartmentIdAsync(companyId))
-			.ThrowsAsync(new Exception("Database error"));
+		var invalidDepartmentId = 0;
 
-		// Act
-		var result = await _employeeService.GetEmployeesByDepartmentIdAsync(companyId);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Database error");
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentException>(() =>
+			_employeeService.GetEmployeesByDepartmentIdAsync(invalidDepartmentId));
 	}
 
 	[Fact]
-	public async Task PostEmployeeAsync_ShouldReturnEmployeeId_WhenCreationSucceeds()
+	public async Task CreateEmployeeAsync_ShouldReturnEmployeeId_WhenCreationSucceeds()
 	{
 		// Arrange
-		var request = new PostEmplpoyeeRequest
+		var request = new CreateEmplpoyeeRequest
 		{
 			Name = "Test",
 			Surname = "User",
@@ -183,17 +177,17 @@ public class EmployeeServiceTests
 		};
 
 		var expectedEmployeeId = 1;
-		_writableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.CreateAsync(It.IsAny<Employee>(), It.IsAny<Passport>(), It.IsAny<Department>()))
 			.ReturnsAsync(expectedEmployeeId);
 
 		// Act
-		var result = await _employeeService.PostEmployeeAsync(request);
+		var result = await _employeeService.CreateEmployeeAsync(request);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		result.Data.Id.Should().Be(expectedEmployeeId);
-		_writableRepositoryMock.Verify(repo => repo.CreateAsync(
+		result.Should().NotBeNull();
+		result.Id.Should().Be(expectedEmployeeId);
+		_employeeRepositoryMock.Verify(repo => repo.CreateAsync(
 			It.IsAny<Employee>(),
 			It.IsAny<Passport>(),
 			It.IsAny<Department>()),
@@ -201,10 +195,18 @@ public class EmployeeServiceTests
 	}
 
 	[Fact]
-	public async Task PostEmployeeAsync_ShouldReturnError_WhenCreationFails()
+	public async Task CreateEmployeeAsync_ShouldThrowArgumentNullException_WhenRequestIsNull()
+	{
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentNullException>(() =>
+			_employeeService.CreateEmployeeAsync(null));
+	}
+
+	[Fact]
+	public async Task CreateEmployeeAsync_ShouldThrowException_WhenCreationFails()
 	{
 		// Arrange
-		var request = new PostEmplpoyeeRequest
+		var request = new CreateEmplpoyeeRequest
 		{
 			Name = "Test",
 			Surname = "User",
@@ -214,23 +216,21 @@ public class EmployeeServiceTests
 			Department = new DepartmentDTO { Name = "IT", Phone = "1234" }
 		};
 
-		_writableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.CreateAsync(It.IsAny<Employee>(), It.IsAny<Passport>(), It.IsAny<Department>()))
 			.ThrowsAsync(new Exception("Creation failed"));
 
-		// Act
-		var result = await _employeeService.PostEmployeeAsync(request);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Creation failed");
+		// Act & Assert
+		await Assert.ThrowsAsync<Exception>(() =>
+			_employeeService.CreateEmployeeAsync(request));
 	}
+
 	[Fact]
-	public async Task UpdateEmployeeAsync_ShouldReturnSuccess_WhenUpdateSucceeds()
+	public async Task UpdateEmployeeAsync_ShouldSucceed_WhenUpdateSucceeds()
 	{
 		// Arrange
 		var employeeId = 1;
-		var request = new PutEmplpoyeeRequest
+		var request = new UpdateEmplpoyeeRequest
 		{
 			Name = "Updated",
 			Surname = "User",
@@ -241,20 +241,20 @@ public class EmployeeServiceTests
 		};
 
 		var existingEmployee = CreateTestEmployee(employeeId);
-		_readableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.GetByIdAsync(employeeId))
 			.ReturnsAsync(existingEmployee);
 
-		_writableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.UpdateAsync(employeeId, It.IsAny<Employee>(), It.IsAny<Passport>(), It.IsAny<Department>()))
 			.Returns(Task.CompletedTask);
 
 		// Act
-		var result = await _employeeService.UpdateEmployeeAsync(employeeId, request);
+		Func<Task> act = async () => await _employeeService.UpdateEmployeeAsync(employeeId, request);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		_writableRepositoryMock.Verify(repo => repo.UpdateAsync(
+		await act.Should().NotThrowAsync();
+		_employeeRepositoryMock.Verify(repo => repo.UpdateAsync(
 			employeeId,
 			It.IsAny<Employee>(),
 			It.IsAny<Passport>(),
@@ -263,85 +263,96 @@ public class EmployeeServiceTests
 	}
 
 	[Fact]
-	public async Task UpdateEmployeeAsync_ShouldReturnError_WhenEmployeeNotFound()
+	public async Task UpdateEmployeeAsync_ShouldThrowKeyNotFoundException_WhenEmployeeNotFound()
 	{
 		// Arrange
 		var employeeId = 1;
-		var request = new PutEmplpoyeeRequest
+		var request = new UpdateEmplpoyeeRequest
 		{
 			Name = "Updated"
 		};
 
-		_readableRepositoryMock
+		_employeeRepositoryMock
 			.Setup(repo => repo.GetByIdAsync(employeeId))
 			.ReturnsAsync((Employee)null);
 
-		// Act
-		var result = await _employeeService.UpdateEmployeeAsync(employeeId, request);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Employee is not found");
+		// Act & Assert
+		await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+			_employeeService.UpdateEmployeeAsync(employeeId, request));
 	}
 
 	[Fact]
-	public async Task UpdateEmployeeAsync_ShouldReturnError_WhenUpdateFails()
+	public async Task UpdateEmployeeAsync_ShouldThrowArgumentException_WhenInvalidEmployeeId()
 	{
 		// Arrange
-		var employeeId = 1;
-		var request = new PutEmplpoyeeRequest
+		var invalidEmployeeId = 0;
+		var request = new UpdateEmplpoyeeRequest
 		{
 			Name = "Updated"
 		};
 
-		var existingEmployee = CreateTestEmployee(employeeId);
-		_readableRepositoryMock
-			.Setup(repo => repo.GetByIdAsync(employeeId))
-			.ReturnsAsync(existingEmployee);
-
-		_writableRepositoryMock
-			.Setup(repo => repo.UpdateAsync(employeeId, It.IsAny<Employee>(), It.IsAny<Passport>(), It.IsAny<Department>()))
-			.ThrowsAsync(new Exception("Update failed"));
-
-		// Act
-		var result = await _employeeService.UpdateEmployeeAsync(employeeId, request);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Update failed");
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentException>(() =>
+			_employeeService.UpdateEmployeeAsync(invalidEmployeeId, request));
 	}
 
 	[Fact]
-	public async Task DeleteEmployeeByIdAsync_ShouldReturnSuccess_WhenDeletionSucceeds()
+	public async Task UpdateEmployeeAsync_ShouldThrowArgumentNullException_WhenRequestIsNull()
 	{
 		// Arrange
 		var employeeId = 1;
-		_deletableRepositoryMock
+
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentNullException>(() =>
+			_employeeService.UpdateEmployeeAsync(employeeId, null));
+	}
+
+	[Fact]
+	public async Task DeleteEmployeeByIdAsync_ShouldSucceed_WhenDeletionSucceeds()
+	{
+		// Arrange
+		var employeeId = 1;
+		var existingEmployee = CreateTestEmployee(employeeId);
+
+		_employeeRepositoryMock
+			.Setup(repo => repo.GetByIdAsync(employeeId))
+			.ReturnsAsync(existingEmployee);
+
+		_employeeRepositoryMock
 			.Setup(repo => repo.DeleteByIdAsync(employeeId))
 			.Returns(Task.CompletedTask);
 
 		// Act
-		var result = await _employeeService.DeleteEmplpoyeeByIdAsync(employeeId);
+		Func<Task> act = async () => await _employeeService.DeleteEmplpoyeeByIdAsync(employeeId);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
-		_deletableRepositoryMock.Verify(repo => repo.DeleteByIdAsync(employeeId), Times.Once);
+		await act.Should().NotThrowAsync();
+		_employeeRepositoryMock.Verify(repo => repo.DeleteByIdAsync(employeeId), Times.Once);
 	}
 
 	[Fact]
-	public async Task DeleteEmployeeByIdAsync_ShouldReturnError_WhenDeletionFails()
+	public async Task DeleteEmployeeByIdAsync_ShouldThrowKeyNotFoundException_WhenEmployeeNotFound()
 	{
 		// Arrange
 		var employeeId = 1;
-		_deletableRepositoryMock
-			.Setup(repo => repo.DeleteByIdAsync(employeeId))
-			.ThrowsAsync(new Exception("Deletion failed"));
 
-		// Act
-		var result = await _employeeService.DeleteEmplpoyeeByIdAsync(employeeId);
+		_employeeRepositoryMock
+			.Setup(repo => repo.GetByIdAsync(employeeId))
+			.ReturnsAsync((Employee)null);
 
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorMessage.Should().Be("Deletion failed");
+		// Act & Assert
+		await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+			_employeeService.DeleteEmplpoyeeByIdAsync(employeeId));
+	}
+
+	[Fact]
+	public async Task DeleteEmployeeByIdAsync_ShouldThrowArgumentException_WhenInvalidEmployeeId()
+	{
+		// Arrange
+		var invalidEmployeeId = 0;
+
+		// Act & Assert
+		await Assert.ThrowsAsync<ArgumentException>(() =>
+			_employeeService.DeleteEmplpoyeeByIdAsync(invalidEmployeeId));
 	}
 }
