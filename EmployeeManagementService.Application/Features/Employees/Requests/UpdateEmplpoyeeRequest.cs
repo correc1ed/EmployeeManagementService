@@ -1,4 +1,4 @@
-﻿using EmployeeManagementService.Application.Features.Employees.DTO;
+﻿using EmployeeManagementService.Application.Features.Employees.ViewModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeManagementService.Application.Features.Employees.Requests;
@@ -20,7 +20,7 @@ public class UpdateEmplpoyeeRequest
 	[Range(1, int.MaxValue, ErrorMessage = "Неверный идентификатор компании")]
 	public int? CompanyId { get; set; }
 
-	public PassportForUpdateDTO? Passport { get; set; }
+	public PassportForUpdateViewModel? Passport { get; set; }
 
-	public DepartmentForUpdateDTO? Department { get; set; }
+	public DepartmentForUpdateViewModel? Department { get; set; }
 }

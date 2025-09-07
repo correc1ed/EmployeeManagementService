@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementService.API", "EmployeeManagementService.API\EmployeeManagementService.API.csproj", "{E953A4E0-C5CF-48B1-9559-B2E2D87724F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementService.Domain.Data", "EmployeeManagementService.Domain.Data\EmployeeManagementService.Domain.Data.csproj", "{2D057200-B71F-441C-8408-2F0A7A26C163}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementService.Domain", "EmployeeManagementService.Domain\EmployeeManagementService.Domain.csproj", "{2D057200-B71F-441C-8408-2F0A7A26C163}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeManagementService.Infrastructure", "EmployeeManagementService.Infrastructure\EmployeeManagementService.Infrastructure.csproj", "{C2638CE1-13D2-47C7-9ED2-DE2429D6C40A}"
 EndProject

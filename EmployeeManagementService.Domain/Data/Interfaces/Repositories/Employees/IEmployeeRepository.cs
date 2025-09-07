@@ -1,6 +1,6 @@
-﻿using EmployeeManagementService.Domain.Data.Abstractions.Entities;
+﻿using EmployeeManagementService.Domain.Data.Entities;
 
-namespace EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
+namespace EmployeeManagementService.Domain.Data.Interfaces.Repositories.Employees;
 
 public interface IEmployeeRepository
 {

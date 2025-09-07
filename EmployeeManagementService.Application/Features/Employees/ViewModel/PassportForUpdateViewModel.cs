@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EmployeeManagementService.Application.Features.Employees.DTO;
+namespace EmployeeManagementService.Application.Features.Employees.ViewModel;
 
-public class PassportForUpdateDTO
+public class PassportForUpdateViewModel
 {
 	[StringLength(10, ErrorMessage = "Тип паспорта не должен превышать 10 символов")]
 	public string? Type { get; set; }

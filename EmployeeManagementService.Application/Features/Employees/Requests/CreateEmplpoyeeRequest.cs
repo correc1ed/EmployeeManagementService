@@ -1,4 +1,4 @@
-﻿using EmployeeManagementService.Application.Features.Employees.DTO;
+﻿using EmployeeManagementService.Application.Features.Employees.ViewModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeManagementService.Application.Features.Employees.Requests;
@@ -25,8 +25,8 @@ public class CreateEmplpoyeeRequest
 	public int CompanyId { get; set; }
 
 	[Required(ErrorMessage = "Данные паспорта обязательны для заполнения")]
-	public PassportDTO Passport { get; set; }
+	public PassportViewModel Passport { get; set; }
 
 	[Required(ErrorMessage = "Данные отдела обязательны для заполнения")]
-	public DepartmentDTO Department { get; set; }
+	public DepartmentViewModel Department { get; set; }
 }

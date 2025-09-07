@@ -1,8 +1,7 @@
-﻿using EmployeeManagementService.Application.Features.Employees.DTO;
-using EmployeeManagementService.Application.Features.Employees.Requests;
-using EmployeeManagementService.Application.Features.Employees.Responses;
-using EmployeeManagementService.Domain.Data.Abstractions.Entities;
-using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
+﻿using EmployeeManagementService.Application.Features.Employees.Requests;
+using EmployeeManagementService.Application.Features.Employees.ViewModel;
+using EmployeeManagementService.Domain.Data.Entities;
+using EmployeeManagementService.Domain.Data.Interfaces.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Services.Employees;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -172,8 +171,8 @@ public class EmployeeServiceTests
 			Surname = "User",
 			Phone = "1234567890",
 			CompanyId = 1,
-			Passport = new PassportDTO { Type = "RU", Number = "123456" },
-			Department = new DepartmentDTO { Name = "IT", Phone = "1234" }
+			Passport = new PassportViewModel { Type = "RU", Number = "123456" },
+			Department = new DepartmentViewModel { Name = "IT", Phone = "1234" }
 		};
 
 		var expectedEmployeeId = 1;
@@ -212,8 +211,8 @@ public class EmployeeServiceTests
 			Surname = "User",
 			Phone = "1234567890",
 			CompanyId = 1,
-			Passport = new PassportDTO { Type = "RU", Number = "123456" },
-			Department = new DepartmentDTO { Name = "IT", Phone = "1234" }
+			Passport = new PassportViewModel { Type = "RU", Number = "123456" },
+			Department = new DepartmentViewModel { Name = "IT", Phone = "1234" }
 		};
 
 		_employeeRepositoryMock
@@ -236,8 +235,8 @@ public class EmployeeServiceTests
 			Surname = "User",
 			Phone = "0987654321",
 			CompanyId = 2,
-			Passport = new PassportForUpdateDTO { Type = "US", Number = "654321" },
-			Department = new DepartmentForUpdateDTO { Name = "HR", Phone = "4321" }
+			Passport = new PassportForUpdateViewModel { Type = "US", Number = "654321" },
+			Department = new DepartmentForUpdateViewModel { Name = "HR", Phone = "4321" }
 		};
 
 		var existingEmployee = CreateTestEmployee(employeeId);

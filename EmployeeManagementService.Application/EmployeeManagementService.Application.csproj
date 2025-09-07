@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EmployeeManagementService.Domain.Data.Abstractions\EmployeeManagementService.Domain.Data.csproj" />
-    <ProjectReference Include="..\EmployeeManagementService.Domain.Data\EmployeeManagementService.Domain.Data.csproj" />
+    <ProjectReference Include="..\EmployeeManagementService.Domain\EmployeeManagementService.Domain.csproj" />
   </ItemGroup>
 
 </Project>

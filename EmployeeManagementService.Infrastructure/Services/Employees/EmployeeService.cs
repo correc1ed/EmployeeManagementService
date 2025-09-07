@@ -1,9 +1,9 @@
-﻿using EmployeeManagementService.Application.Features.Employees.DTO;
-using EmployeeManagementService.Application.Features.Employees.Interfaces;
+﻿using EmployeeManagementService.Application.Features.Employees.Interfaces;
 using EmployeeManagementService.Application.Features.Employees.Requests;
 using EmployeeManagementService.Application.Features.Employees.Responses;
-using EmployeeManagementService.Domain.Data.Abstractions.Entities;
-using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
+using EmployeeManagementService.Application.Features.Employees.ViewModel;
+using EmployeeManagementService.Domain.Data.Entities;
+using EmployeeManagementService.Domain.Data.Interfaces.Repositories.Employees;
 using Microsoft.Extensions.Logging;
 
 namespace EmployeeManagementService.Infrastructure.Services.Employees;
@@ -38,10 +38,10 @@ public class EmployeeService : IEmployeeService
 			{
 				var errorMessage = "No employees found for the specified company";
 				_logger.LogWarning(errorMessage);
-				return new GetEmployeesResponse { Employees = new List<EmployeeDTO>() };
+				return new GetEmployeesResponse { Employees = new List<EmployeeViewModel>() };
 			}
 
-			var result = employees.Select(_ => new EmployeeDTO()
+			var result = employees.Select(_ => new EmployeeViewModel()
 			{
 				Id = _.Id,
 				Name = _.Name,
@@ -81,10 +81,10 @@ public class EmployeeService : IEmployeeService
 			{
 				var errorMessage = "No employees found for the specified department";
 				_logger.LogWarning(errorMessage);
-				return new GetEmployeesResponse { Employees = new List<EmployeeDTO>() };
+				return new GetEmployeesResponse { Employees = new List<EmployeeViewModel>() };
 			}
 
-			var result = employees.Select(_ => new EmployeeDTO()
+			var result = employees.Select(_ => new EmployeeViewModel()
 			{
 				Id = _.Id,
 				Name = _.Name,

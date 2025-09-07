@@ -1,8 +1,8 @@
-﻿using EmployeeManagementService.Application.Features.Employees.DTO;
+﻿using EmployeeManagementService.Application.Features.Employees.ViewModel;
 
 namespace EmployeeManagementService.Application.Features.Employees.Responses;
 
 public class GetEmployeesResponse
 {
-	public IEnumerable<EmployeeDTO> Employees { get; set; }
+	public IEnumerable<EmployeeViewModel> Employees { get; set; }
 }

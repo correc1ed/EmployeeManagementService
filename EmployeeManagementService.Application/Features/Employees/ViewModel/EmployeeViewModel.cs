@@ -1,8 +1,8 @@
-﻿using EmployeeManagementService.Domain.Data.Abstractions.Entities;
+﻿using EmployeeManagementService.Domain.Data.Entities;
 
-namespace EmployeeManagementService.Application.Features.Employees.DTO;
+namespace EmployeeManagementService.Application.Features.Employees.ViewModel;
 
-public class EmployeeDTO
+public class EmployeeViewModel
 {
 	public int Id { get; set; }
 	public string Name { get; set; }

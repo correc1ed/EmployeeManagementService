@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions\Repositories\Departments\" />
+    <Folder Include="Data\Interfaces\Repositories\Departments\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
 ﻿using EmployeeManagementService.Application.Features.Employees.Interfaces;
-using EmployeeManagementService.Domain.Data.Abstractions.Repositories.Employees;
+using EmployeeManagementService.Domain.Data.Interfaces.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Persistence.Repositories.Employees;
 using EmployeeManagementService.Infrastructure.Services.Employees;
 

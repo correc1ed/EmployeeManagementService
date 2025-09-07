@@ -1,4 +1,4 @@
-﻿namespace EmployeeManagementService.Domain.Data.Abstractions.Entities;
+﻿namespace EmployeeManagementService.Domain.Data.Entities;
 
 /// <summary>
 /// Отделение
